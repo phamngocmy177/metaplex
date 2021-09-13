@@ -9,6 +9,7 @@ import {
   MasterEditionV2,
   MetadataKey,
   METADATA_PROGRAM_ID,
+  TOKEN_PROGRAM_ID
 } from '@oyster/common';
 import { AccountInfo } from '@solana/web3.js';
 import { ProcessAccountsFunc } from './types';
@@ -21,9 +22,25 @@ export const processMetaData: ProcessAccountsFunc = (
   if (!isMetadataAccount(account)) return;
 
   try {
+   
+    // if (account.owner == TOKEN_PROGRAM_ID) {
+    //   console.log("TOKEN_PROGRAM_ID", TOKEN_PROGRAM_ID, account)
+    //   const metadata = decodeMetadata(account.data);
+    //   console.log("metadata", metadata.data)
+    //   if (
+    //     isValidHttpUrl(metadata.data.uri) &&
+    //     metadata.data.uri.indexOf('arweave') >= 0
+    //   ) {
+    //     const parsedAccount: ParsedAccount<Metadata> = {
+    //       pubkey,
+    //       account,
+    //       info: metadata,
+    //     };
+    //     setter('metadataByMint', metadata.mint, parsedAccount);
+    //   }
+    // }
     if (isMetadataV1Account(account)) {
       const metadata = decodeMetadata(account.data);
-
       if (
         isValidHttpUrl(metadata.data.uri) &&
         metadata.data.uri.indexOf('arweave') >= 0
@@ -103,3 +120,4 @@ const isMasterEditionV1 = (
 ): me is MasterEditionV1 => {
   return me.key === MetadataKey.MasterEditionV1;
 };
+
