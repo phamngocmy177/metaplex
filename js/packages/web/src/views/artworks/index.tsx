@@ -30,7 +30,7 @@ export const ArtworksView = () => {
     700: 2,
     500: 1,
   };
-
+  console.log('ownedMetadata', ownedMetadata);
   const items =
     activeKey === ArtworkViewState.Owned
       ? ownedMetadata.map(m => m.metadata)

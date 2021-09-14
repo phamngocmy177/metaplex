@@ -15,12 +15,13 @@ export interface ArtSelectorProps extends ButtonProps {
 export const ArtSelector = (props: ArtSelectorProps) => {
   const { selected, setSelected, allowMultiple, ...rest } = props;
   let items = useUserArts();
-  if (props.filter) items = items.filter(props.filter);
+  // console.log('items', items);
+  // if (props.filter) items = items.filter(props.filter);
   const selectedItems = useMemo<Set<string>>(
     () => new Set(selected.map(item => item.metadata.pubkey)),
     [selected],
   );
-
+  // console.log('selectedItems', selectedItems);
   const [visible, setVisible] = useState(false);
 
   const open = () => {
@@ -47,7 +48,7 @@ export const ArtSelector = (props: ArtSelectorProps) => {
     700: 2,
     500: 1,
   };
-
+  console.log('items', items);
   return (
     <>
       <Masonry
@@ -105,9 +106,10 @@ export const ArtSelector = (props: ArtSelectorProps) => {
             columnClassName="my-masonry-grid_column"
           >
             {items.map(m => {
+              console.log('m', m);
               const id = m.metadata.pubkey;
               const isSelected = selectedItems.has(id);
-
+              console.log('items', items, isSelected, selectedItems);
               const onSelect = () => {
                 let list = [...selectedItems.keys()];
                 if (allowMultiple) {

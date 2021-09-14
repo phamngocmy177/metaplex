@@ -23,7 +23,7 @@ export const useUserArts = (): SafetyDepositDraft[] => {
     prev.set(acc.info.mint.toBase58(), acc);
     return prev;
   }, new Map<string, TokenAccount>());
-
+  
   const ownedMetadata = metadata.filter(
     m =>
       accountByMint.has(m.info.mint) &&

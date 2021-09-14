@@ -19,10 +19,21 @@ export const processMetaData: ProcessAccountsFunc = (
   { account, pubkey },
   setter,
 ) => {
-  if (!isMetadataAccount(account)) return;
+  // if (!isMetadataAccount(account)) return;
+  if(account.owner.toString() !== METADATA_PROGRAM_ID) return;
+  const metadata = decodeMetadata(account.data);
+  if(metadata.updateAuthority === "8jTSV9N8r3TZ1w9wAizeNx133Dmp4e1h4f3Pyp9daZyC") {
 
+    const parsedAccount: ParsedAccount<Metadata> = {
+      pubkey,
+      account,
+      info: metadata,
+    };
+    setter('metadataByMint', metadata.mint, parsedAccount);
+  }
+  else return;
   try {
-   
+    if (!isMetadataAccount(account)) return;
     // if (account.owner == TOKEN_PROGRAM_ID) {
     //   console.log("TOKEN_PROGRAM_ID", TOKEN_PROGRAM_ID, account)
     //   const metadata = decodeMetadata(account.data);
@@ -39,20 +50,21 @@ export const processMetaData: ProcessAccountsFunc = (
     //     setter('metadataByMint', metadata.mint, parsedAccount);
     //   }
     // }
-    if (isMetadataV1Account(account)) {
-      const metadata = decodeMetadata(account.data);
-      if (
-        isValidHttpUrl(metadata.data.uri) &&
-        metadata.data.uri.indexOf('arweave') >= 0
-      ) {
-        const parsedAccount: ParsedAccount<Metadata> = {
-          pubkey,
-          account,
-          info: metadata,
-        };
-        setter('metadataByMint', metadata.mint, parsedAccount);
-      }
-    }
+    // if (isMetadataV1Account(account)) {
+    //   const metadata = decodeMetadata(account.data);
+    //   console.log("metadata", metadata)
+    //   if (
+    //     isValidHttpUrl(metadata.data.uri) &&
+    //     metadata.data.uri.indexOf('arweave') >= 0
+    //   ) {
+    //     const parsedAccount: ParsedAccount<Metadata> = {
+    //       pubkey,
+    //       account,
+    //       info: metadata,
+    //     };
+    //     setter('metadataByMint', metadata.mint, parsedAccount);
+    //   }
+    // }
 
     if (isEditionV1Account(account)) {
       const edition = decodeEdition(account.data);
@@ -103,6 +115,10 @@ export const processMetaData: ProcessAccountsFunc = (
 
 const isMetadataAccount = (account: AccountInfo<Buffer>) => {
   return (account.owner as unknown as any) === METADATA_PROGRAM_ID;
+};
+
+const isTokenAccount = (account: AccountInfo<Buffer>) => {
+  return (account.owner as unknown as any) === TOKEN_PROGRAM_ID;
 };
 
 const isMetadataV1Account = (account: AccountInfo<Buffer>) =>

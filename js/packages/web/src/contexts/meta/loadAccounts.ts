@@ -28,45 +28,51 @@ import {
 import { MAX_WHITELISTED_CREATOR_SIZE } from '../../models/metaplex';
 import tempData from "./data.json";
 import { metav1Accounts, metaplexId, auctions } from "./data.js";
+import { getAllCollectibles } from "./loadNfts";
 
 async function getProgramAccounts(
   connection: Connection,
   programId: StringPublicKey,
   configOrCommitment?: any,
+  wallets?: Array<string>
 ): Promise<Array<AccountAndPubkey>> {
   const extra: any = {};
   let commitment;
   let encoding;
   if(programId === METADATA_PROGRAM_ID){
-    return metav1Accounts.map(item => {
-      return {
-        account: {
-          // TODO: possible delay parsing could be added here
-          data: Buffer.from(item.account.data[0], 'base64'),
-          executable: item.account.executable,
-          lamports: item.account.lamports,
-          // TODO: maybe we can do it in lazy way? or just use string
-          owner: item.account.owner,
-        } as unknown as AccountInfo<Buffer>,
-        pubkey: item.pubkey,
-      };
-    });
+    // return metav1Accounts.map(item => {
+    //   return {
+    //     account: {
+    //       // TODO: possible delay parsing could be added here
+    //       data: Buffer.from(item.account.data[0], 'base64'),
+    //       // data: item.account.data,
+    //       executable: item.account.executable,
+    //       lamports: item.account.lamports,
+    //       // TODO: maybe we can do it in lazy way? or just use string
+    //       owner: item.account.owner,
+    //     } as unknown as AccountInfo<Buffer>,
+    //     pubkey: item.pubkey,
+    //   };
+    // });
+    const nfts = await getAllCollectibles(connection, wallets);
+    console.log("nfts", nfts);
+    return [].concat.apply([], nfts);
   }
-  if(programId === METAPLEX_ID){
-    return metaplexId.map(item => {
-      return {
-        account: {
-          // TODO: possible delay parsing could be added here
-          data: Buffer.from(item.account.data[0], 'base64'),
-          executable: item.account.executable,
-          lamports: item.account.lamports,
-          // TODO: maybe we can do it in lazy way? or just use string
-          owner: item.account.owner,
-        } as unknown as AccountInfo<Buffer>,
-        pubkey: item.pubkey,
-      };
-    });
-  }
+  // if(programId === METAPLEX_ID){
+  //   return metaplexId.map(item => {
+  //     return {
+  //       account: {
+  //         // TODO: possible delay parsing could be added here
+  //         data: Buffer.from(item.account.data[0], 'base64'),
+  //         executable: item.account.executable,
+  //         lamports: item.account.lamports,
+  //         // TODO: maybe we can do it in lazy way? or just use string
+  //         owner: item.account.owner,
+  //       } as unknown as AccountInfo<Buffer>,
+  //       pubkey: item.pubkey,
+  //     };
+  //   });
+  // }
   // if(programId === AUCTION_ID){
   //   return metaplexId.map(item => {
   //     return {
@@ -177,11 +183,11 @@ export const loadAccounts = async (connection: Connection, all: boolean) => {
   console.log(`Is big store: ${IS_BIG_STORE}`);
 
   const promises = [
-    getProgramAccounts(connection, VAULT_ID).then(forEach(processVaultData)),
-    getProgramAccounts(connection, AUCTION_ID).then(forEach(processAuctions)),
-    getProgramAccounts(connection, METAPLEX_ID).then(
-      forEach(processMetaplexAccounts),
-    ),
+    // getProgramAccounts(connection, VAULT_ID).then(forEach(processVaultData)),
+    // getProgramAccounts(connection, AUCTION_ID).then(forEach(processAuctions)),
+    // getProgramAccounts(connection, METAPLEX_ID).then(
+    //   forEach(processMetaplexAccounts),
+    // ),
     // IS_BIG_STORE
     //   ? getProgramAccounts(connection, METADATA_PROGRAM_ID).then(
     //       forEach(processMetaData),
@@ -213,7 +219,7 @@ export const loadAccounts = async (connection: Connection, all: boolean) => {
         );
       } else {
         console.log('pulling optimized nfts');
-
+        console.log("whitelistedCreators", whitelistedCreators)
         for (let i = 0; i < MAX_CREATOR_LIMIT; i++) {
           for (let j = 0; j < whitelistedCreators.length; j++) {
             additionalPromises.push(
@@ -239,7 +245,7 @@ export const loadAccounts = async (connection: Connection, all: boolean) => {
                     },
                   },
                 ],
-              }).then(forEach(processMetaData)),
+              }, whitelistedCreators.map(item => item.info.address)).then(forEach(processMetaData)),
               // forEach(metav1Accounts => processMetaData)
               // metav1Accounts.then(async item => processMetaData(item))
             );
@@ -352,14 +358,14 @@ export const metadataByMintUpdater = async (
   all: boolean,
 ) => {
   const key = metadata.info.mint;
-  if (
-    isMetadataPartOfStore(
-      metadata,
-      state.store,
-      state.whitelistedCreatorsByCreator,
-      all,
-    )
-  ) {
+  // if (
+  //   isMetadataPartOfStore(
+  //     metadata,
+  //     state.store,
+  //     state.whitelistedCreatorsByCreator,
+  //     all,
+  //   )
+  // ) {
     // console.log("metadata", metadata);
     // const Meta = ParsedAccount<Metadata>(metadata.info);
     await metadata.info.init();
@@ -367,11 +373,13 @@ export const metadataByMintUpdater = async (
     if (masterEditionKey) {
       state.metadataByMasterEdition[masterEditionKey] = metadata;
     }
+   // console.log("metadata", metadata);
     state.metadataByMint[key] = metadata;
     state.metadata.push(metadata);
-  } else {
-    delete state.metadataByMint[key];
-  }
+  // } 
+  // else {
+  //   // delete state.metadataByMint[key];
+  // }
   return state;
 };
 
